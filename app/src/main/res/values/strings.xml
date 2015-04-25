@@ -2,5 +2,6 @@
     <string name="app_name">Smart Guide</string>
     <string name="title_activity_smart_guide">Smart Guide</string>
 
-    <string name="action_do">Berechne</string>
+    <string name="action_do">Smart Guide</string>
+    <string name="location_txt">Your Place</string>
 </resources>

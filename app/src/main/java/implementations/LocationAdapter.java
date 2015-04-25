@@ -51,11 +51,11 @@ import java.util.concurrent.TimeUnit;
  * Places#GEO_DATA_API} API.
  */
 public class LocationAdapter
-        extends ArrayAdapter<LocationAdapter.PlaceAutocomplete> implements Filterable {
+        extends ArrayAdapter<PlacesImpl> implements Filterable {
     /**
      * Current results returned by this adapter.
      */
-    private ArrayList<PlaceAutocomplete> mResultList;
+    private ArrayList<PlacesImpl> mResultList;
 
     /**
      * Handles autocomplete requests.
@@ -117,7 +117,7 @@ public class LocationAdapter
      * Returns an item from the last autocomplete query.
      */
     @Override
-    public PlaceAutocomplete getItem(int position) {
+    public PlacesImpl getItem(int position) {
         return mResultList.get(position);
     }
 
@@ -171,7 +171,7 @@ public class LocationAdapter
      * @return Results from the autocomplete API or null if the query was not successful.
      * @see Places#GEO_DATA_API#getAutocomplete(CharSequence)
      */
-    private ArrayList<PlaceAutocomplete> getAutocomplete(CharSequence constraint) {
+    private ArrayList<PlacesImpl> getAutocomplete(CharSequence constraint) {
         if (mGoogleApiClient != null) {
 
             // Submit the query to the autocomplete API and retrieve a PendingResult that will
@@ -203,7 +203,7 @@ public class LocationAdapter
             while (iterator.hasNext()) {
                 AutocompletePrediction prediction = iterator.next();
                 // Get the details of this prediction and copy it into a new PlaceAutocomplete object.
-                resultList.add(new PlaceAutocomplete(prediction.getPlaceId(),
+                resultList.add(new PlacesImpl(prediction.getPlaceId(),
                         prediction.getDescription()));
             }
 
@@ -213,24 +213,5 @@ public class LocationAdapter
             return resultList;
         }
         return null;
-    }
-
-    /**
-     * Holder for Places Geo Data Autocomplete API results.
-     */
-    class PlaceAutocomplete {
-
-        public CharSequence placeId;
-        public CharSequence description;
-
-        PlaceAutocomplete(CharSequence placeId, CharSequence description) {
-            this.placeId = placeId;
-            this.description = description;
-        }
-
-        @Override
-        public String toString() {
-            return description.toString();
-        }
     }
 }
