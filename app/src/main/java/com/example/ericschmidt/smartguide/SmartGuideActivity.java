@@ -1,39 +1,54 @@
 package com.example.ericschmidt.smartguide;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
-import android.widget.Toast;
+import android.widget.ListView;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
+import implementations.GoogleMapsApiBuilder;
+import implementations.ListViewLocationAdapter;
 import implementations.LocationAdapter;
 import interfaces.IPlaces;
 import interfaces.ISmartWay;
 
-public class SmartGuideActivity extends ActionBarActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks{
+public class SmartGuideActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ISmartWay mSmartWay; //reference to the implementation of the SmartWay-Algorithmen
-    private ArrayList<IPlaces> mPlacesList; //reference to the implementation of IPlaces
     private GoogleApiClient mGoogleApiClient;
+    private ArrayList<Marker> mMarkerList = new ArrayList<>();;
     private LocationAdapter mLocationAdapter;
+    private ListViewLocationAdapter mListViewLocationAdapter;
+    private ArrayList<IPlaces> mPlacesList = new ArrayList<>();
 
     private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
             new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
 
     private AutoCompleteTextView searchTextView;
+    private ListView locationListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,17 +56,20 @@ public class SmartGuideActivity extends ActionBarActivity implements GoogleApiCl
         setContentView(R.layout.activity_smart_guide);
         setUpMapIfNeeded();
 
-        if (mGoogleApiClient == null) {
-            rebuildGoogleApiClient();
-        }
-
         //Set up the Autocomplete TextView
         searchTextView = (AutoCompleteTextView) findViewById(R.id.location_txt);
         mLocationAdapter = new LocationAdapter(this, android.R.layout.simple_list_item_1,
                 BOUNDS_GREATER_SYDNEY, null);
-        mLocationAdapter.setGoogleApiClient(mGoogleApiClient);
         searchTextView.setAdapter(mLocationAdapter);
+        searchTextView.setOnItemClickListener(this);
 
+        //Receive the GoogleApiClient Object
+        mGoogleApiClient = GoogleMapsApiBuilder.getInstance(this, mLocationAdapter);
+
+        //Set the reference to the list view and assign the adapter
+        locationListView = (ListView) findViewById(R.id.location_list);
+        mListViewLocationAdapter = new ListViewLocationAdapter(this, mPlacesList);
+        locationListView.setAdapter(mListViewLocationAdapter);
     }
 
     @Override
@@ -88,57 +106,8 @@ public class SmartGuideActivity extends ActionBarActivity implements GoogleApiCl
     }
 
     /**
-     * Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
-     * functionality.
-     * This automatically sets up the API client to handle Activity lifecycle events.
-     */
-    protected synchronized void rebuildGoogleApiClient() {
-        // When we build the GoogleApiClient we specify where connected and connection failed
-        // callbacks should be returned, which Google APIs our app uses and which OAuth 2.0
-        // scopes our app requests.
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, 0 /* clientId */, this)
-                .addConnectionCallbacks(this)
-                .addApi(Places.GEO_DATA_API)
-                .build();
-    }
-
-    /**
-     * Called when the Activity could not connect to Google Play services and the auto manager
-     * could resolve the error automatically.
-     * In this case the API is not available and notify the user.
-     *
-     * @param connectionResult can be inspected to determine the cause of the failure
-     */
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        // TODO(Developer): Check error code and notify the user of error state and resolution.
-        Toast.makeText(this,
-                "Could not connect to Google API Client: Error " + connectionResult.getErrorCode(),
-                Toast.LENGTH_SHORT).show();
-
-        // Disable API access in the adapter because the client was not initialised correctly.
-        mLocationAdapter.setGoogleApiClient(null);
-    }
-
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        // Successfully connected to the API client. Pass it to the adapter to enable API access.
-        mLocationAdapter.setGoogleApiClient(mGoogleApiClient);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        // Connection to the API client has been suspended. Disable API access in the client.
-        mLocationAdapter.setGoogleApiClient(null);
-    }
-
-
-    /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
+     * installed) and the map has not already been instantiated.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -156,10 +125,6 @@ public class SmartGuideActivity extends ActionBarActivity implements GoogleApiCl
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
-            }
         }
     }
 
@@ -169,7 +134,49 @@ public class SmartGuideActivity extends ActionBarActivity implements GoogleApiCl
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
-    private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+    private void setMarker(Place place) {
+        mMarkerList.add(mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString())));
+        centerMap();
+    }
+
+    private void centerMap(){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (Marker marker : mMarkerList) {
+            builder.include(marker.getPosition());
+        }
+
+        LatLngBounds bounds = builder.build();
+        int padding = 0; // offset from edges of the map in pixels
+        final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                mMap.moveCamera(cu);
+            }
+        });
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        final IPlaces place = mLocationAdapter.getItem(position);
+
+        PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
+                .getPlaceById(mGoogleApiClient, place.getPlaceID().toString());
+        placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
+            @Override
+            public void onResult(PlaceBuffer places) {
+                setMarker(places.get(0));
+
+                place.setPlace(places.get(0));
+                mListViewLocationAdapter.add(place);
+            }
+        });
+
+        //Clear TextView
+        searchTextView.setText("");
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(searchTextView.getWindowToken(), 0);
     }
 }
