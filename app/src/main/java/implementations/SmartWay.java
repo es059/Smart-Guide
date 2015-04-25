@@ -15,3 +15,4 @@ public class SmartWay implements ISmartWay{
         return placesList;
     }
 }
+
