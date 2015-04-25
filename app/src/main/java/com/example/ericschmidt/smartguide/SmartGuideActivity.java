@@ -70,6 +70,7 @@ public class SmartGuideActivity extends ActionBarActivity implements AdapterView
         locationListView = (ListView) findViewById(R.id.location_list);
         mListViewLocationAdapter = new ListViewLocationAdapter(this, mPlacesList);
         locationListView.setAdapter(mListViewLocationAdapter);
+
     }
 
     @Override
@@ -96,6 +97,7 @@ public class SmartGuideActivity extends ActionBarActivity implements AdapterView
         if (id == R.id.action_do) {
             if (!mPlacesList.isEmpty()) {
                 mPlacesList = mSmartWay.doAction(mPlacesList);
+                mListViewLocationAdapter.notifyDataSetChanged();
                 return true;
             }else{
                 return false;

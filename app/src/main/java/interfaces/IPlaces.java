@@ -10,5 +10,6 @@ public interface IPlaces {
     public CharSequence getPlaceID();
     public void setPlace(Place place);
     public Place getPlace();
+    public double distanceTo(IPlaces place);
 
 }
