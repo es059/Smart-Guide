@@ -64,8 +64,14 @@ public class ListViewLocationAdapter extends ArrayAdapter<IPlaces>{
         if (placeTypeList.contains(Place.TYPE_GROCERY_OR_SUPERMARKET) || placeTypeList.contains(Place.TYPE_STORE)) {
             drawable = context.getResources().getDrawable(R.drawable.location_shop);
             return drawable;
-        }else if (placeTypeList.contains(Place.TYPE_BAR)) {
+        }else if (placeTypeList.contains(Place.TYPE_BAR) || placeTypeList.contains(Place.TYPE_FOOD)) {
             drawable = context.getResources().getDrawable(R.drawable.location_bar);
+            return drawable;
+        }else if (placeTypeList.contains(Place.TYPE_LOCALITY) && !placeTypeList.contains(Place.TYPE_LOCALITY)) {
+            drawable = context.getResources().getDrawable(R.drawable.location_city);
+            return drawable;
+        }else if (placeTypeList.contains(Place.TYPE_ESTABLISHMENT) && placeTypeList.contains(Place.TYPE_LOCALITY)){
+            drawable = context.getResources().getDrawable(R.drawable.location_landmark);
             return drawable;
         }else{
             drawable = context.getResources().getDrawable(R.drawable.location_other);

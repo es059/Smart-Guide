@@ -4,4 +4,7 @@
 
     <string name="action_do">Smart Guide</string>
     <string name="location_txt">Your Place</string>
+
+    <string name="progress_dialog_title">Calculating...</string>
+    <string name="progress_dialog_message">Finding the best route</string>
 </resources>
