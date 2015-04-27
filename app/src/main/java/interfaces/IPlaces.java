@@ -13,6 +13,8 @@ public interface IPlaces {
     public Place getPlace();
     public void setMarker(Marker marker);
     public Marker getMarker();
+    public boolean isStartElement();
+    public void setIsStartElement(boolean isStartElement);
 
     public double distanceTo(IPlaces place);
 

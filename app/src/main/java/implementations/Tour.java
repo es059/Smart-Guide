@@ -31,12 +31,20 @@ public class Tour{
 
     // Creates a random individual
     public void generateIndividual() {
+        IPlaces startPlace = null;
         // Loop through all our destination places and add them to our tour
         for (int placeIndex = 0; placeIndex < TourManager.numberOfPlaces(); placeIndex++) {
             setPlace(placeIndex, TourManager.getPlace(placeIndex));
+            if (TourManager.getPlace(placeIndex).isStartElement()){
+                startPlace =  TourManager.getPlace(placeIndex);
+            }
         }
         // Randomly reorder the tour
         Collections.shuffle(tour);
+        if(startPlace != null) {
+            tour.remove(startPlace);
+            tour.add(0, startPlace);
+        }
     }
 
     // Gets a place from the tour

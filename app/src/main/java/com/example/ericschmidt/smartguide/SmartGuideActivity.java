@@ -160,15 +160,17 @@ public class SmartGuideActivity extends ActionBarActivity
     private void centerMap(Marker marker){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(marker.getPosition());
+        doCenter(builder);
+    }
 
+    private void doCenter(LatLngBounds.Builder builder){
         LatLngBounds bounds = builder.build();
-        int padding = 0; // offset from edges of the map in pixels
+        int padding = 50; // offset from edges of the map in pixels
         final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                mMap.moveCamera(cu);
+                mMap.animateCamera(cu);
             }
         });
     }
@@ -178,17 +180,7 @@ public class SmartGuideActivity extends ActionBarActivity
         for (Marker marker : mMarkerList) {
             builder.include(marker.getPosition());
         }
-
-        LatLngBounds bounds = builder.build();
-        int padding = 0; // offset from edges of the map in pixels
-        final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-
-        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-            @Override
-            public void onMapLoaded() {
-                mMap.moveCamera(cu);
-            }
-        });
+        doCenter(builder);
     }
 
     @Override
@@ -203,8 +195,8 @@ public class SmartGuideActivity extends ActionBarActivity
                   place.setPlace(places.get(0));
                   setMarker(place);
 
-                  //mListViewLocationAdapter.add(place);
-                  mPlacesList.add(place);
+                  mListViewLocationAdapter.add(place);
+                  mListViewLocationAdapter.notifyDataSetChanged();
               }
          });
 
@@ -221,6 +213,8 @@ public class SmartGuideActivity extends ActionBarActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            mPlacesList = mListViewLocationAdapter.getPlacesList();
 
             nDialog = new ProgressDialog(SmartGuideActivity.this); //Here I get an error: The constructor ProgressDialog(PFragment) is undefined
             nDialog.setMessage(getResources().getString(R.string.progress_dialog_message));
@@ -240,9 +234,11 @@ public class SmartGuideActivity extends ActionBarActivity
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            mListViewLocationAdapter.clear();
-            mListViewLocationAdapter.addAll(mPlacesList);
+            mListViewLocationAdapter.setPlacesList(mPlacesList);
             mListViewLocationAdapter.notifyDataSetChanged();
+
+            //Receive the GoogleApiClient Object
+            mGoogleApiClient = GoogleMapsApiBuilder.getInstance(SmartGuideActivity.this, mLocationAdapter);
 
             nDialog.dismiss();
         }

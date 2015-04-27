@@ -12,11 +12,11 @@ import interfaces.IPlaces;
  * Created by Eric Schmidt on 22.04.2015.
  */
 public class PlacesImpl implements IPlaces {
-    public CharSequence mPlaceID;
-    public CharSequence mDescription;
-    public Place mPlace;
-    public Marker mMarker;
-
+    private CharSequence mPlaceID;
+    private CharSequence mDescription;
+    private Place mPlace;
+    private Marker mMarker;
+    private boolean mIsStartElement;
 
     public PlacesImpl(CharSequence placeID, CharSequence description) {
         this.mPlaceID = placeID;
@@ -51,6 +51,16 @@ public class PlacesImpl implements IPlaces {
     @Override
     public Marker getMarker() {
         return mMarker;
+    }
+
+    @Override
+    public boolean isStartElement() {
+        return mIsStartElement;
+    }
+
+    @Override
+    public void setIsStartElement(boolean isStartElement) {
+        this.mIsStartElement = isStartElement;
     }
 
     @Override
