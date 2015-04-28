@@ -17,9 +17,9 @@ public class SmartWay implements ISmartWay{
        Population pop = new Population(50, true);
        System.out.println("Initial distance: " + pop.getFittest().getDistance());
 
-        // Evolve population for 100 generations
+        // Evolve population for 200 generations
         pop = GA.evolvePopulation(pop);
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             pop = GA.evolvePopulation(pop);
         }
 

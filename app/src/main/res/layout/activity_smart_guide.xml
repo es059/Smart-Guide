@@ -3,7 +3,6 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    android:padding="10dp"
     android:background="#FFFFFF" >
 
     <AutoCompleteTextView
@@ -17,7 +16,7 @@
         android:id="@+id/location_list"
         android:layout_width="match_parent"
         android:layout_height="230dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="20dp"
         android:layout_below="@+id/location_txt"/>
 
@@ -27,6 +26,7 @@
         android:layout_height="match_parent"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_below="@+id/location_list"
+        android:padding="10dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.ericschmidt.smartguide.R;
@@ -48,7 +49,16 @@ public class ListViewLocationAdapter extends ArrayAdapter<IPlaces>{
         final TextView locationAddress = (TextView) convertView.findViewById(R.id.list_view_address);
         final TextView locationDescription = (TextView) convertView.findViewById(R.id.list_view_description);
         final ImageView locationImage = (ImageView) convertView.findViewById(R.id.list_view_image);
+        final ProgressBar locationLoading = (ProgressBar) convertView.findViewById(R.id.loading_content);
 
+        //Check if Element isStartElement
+        if (place.isStartElement()) {
+            locationImage.setBackgroundColor(Color.parseColor("#b7d877"));
+        }else{
+            locationImage.setBackgroundColor(Color.parseColor("#ffffff"));
+        }
+
+        //Handle isStartElement format
         locationImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,11 +80,17 @@ public class ListViewLocationAdapter extends ArrayAdapter<IPlaces>{
             }
         });
 
-        locationImage.setImageDrawable(getLocationDrawableByType(place.getPlace().getPlaceTypes()));
-        locationAddress.setText(place.getPlace().getAddress());
-        locationDescription.setText(place.getPlace().getName());
+        if (place.getPlace() != null) {
+            locationLoading.setVisibility(View.GONE);
 
-        if (!mViewList.contains(convertView)) mViewList.add(convertView);
+            locationImage.setImageDrawable(getLocationDrawableByType(place.getPlace().getPlaceTypes()));
+            locationAddress.setText(place.getPlace().getAddress());
+            locationDescription.setText(place.getPlace().getName());
+
+            if (!mViewList.contains(convertView)) mViewList.add(convertView);
+        }else{
+            locationLoading.setVisibility(View.VISIBLE);
+        }
 
         // Return the completed view to render on screen
         return convertView;

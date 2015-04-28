@@ -160,12 +160,13 @@ public class SmartGuideActivity extends ActionBarActivity
     private void centerMap(Marker marker){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(marker.getPosition());
-        doCenter(builder);
+        doCenter(builder,true);
     }
 
-    private void doCenter(LatLngBounds.Builder builder){
+    private void doCenter(LatLngBounds.Builder builder, final boolean singlePoint){
         LatLngBounds bounds = builder.build();
-        int padding = 50; // offset from edges of the map in pixels
+        int padding = 50;// offset from edges of the map in pixels
+
         final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
         mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -180,12 +181,18 @@ public class SmartGuideActivity extends ActionBarActivity
         for (Marker marker : mMarkerList) {
             builder.include(marker.getPosition());
         }
-        doCenter(builder);
+        if (mMarkerList.size() > 1) {
+            doCenter(builder, false);
+        }else{
+            doCenter(builder, true);
+        }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final IPlaces place = mLocationAdapter.getItem(position);
+        mListViewLocationAdapter.add(place);
+        mListViewLocationAdapter.notifyDataSetChanged();
 
         PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
                 .getPlaceById(mGoogleApiClient, place.getPlaceID().toString());
@@ -195,7 +202,8 @@ public class SmartGuideActivity extends ActionBarActivity
                   place.setPlace(places.get(0));
                   setMarker(place);
 
-                  mListViewLocationAdapter.add(place);
+                  //mListViewLocationAdapter.remove(place);
+                  //mListViewLocationAdapter.add(place);
                   mListViewLocationAdapter.notifyDataSetChanged();
               }
          });
@@ -234,7 +242,8 @@ public class SmartGuideActivity extends ActionBarActivity
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            mListViewLocationAdapter.setPlacesList(mPlacesList);
+            mListViewLocationAdapter.clear();
+            mListViewLocationAdapter.addAll(mPlacesList);
             mListViewLocationAdapter.notifyDataSetChanged();
 
             //Receive the GoogleApiClient Object
