@@ -1,4 +1,4 @@
-package implementations;
+package com.smart.guide.implementations;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -9,16 +9,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.example.ericschmidt.smartguide.R;
 import com.google.android.gms.location.places.Place;
+import com.smart.guide.R;
+import com.smart.guide.interfaces.IPlaces;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import interfaces.IPlaces;
 
 /**
  * Created by Eric Schmidt on 25.04.2015.
@@ -50,12 +50,15 @@ public class ListViewLocationAdapter extends ArrayAdapter<IPlaces>{
         final TextView locationDescription = (TextView) convertView.findViewById(R.id.list_view_description);
         final ImageView locationImage = (ImageView) convertView.findViewById(R.id.list_view_image);
         final ProgressBar locationLoading = (ProgressBar) convertView.findViewById(R.id.loading_content);
+        final LinearLayout locationLeftSide = (LinearLayout) convertView.findViewById(R.id.list_view_left_side);
 
         //Check if Element isStartElement
         if (place.isStartElement()) {
             locationImage.setBackgroundColor(Color.parseColor("#b7d877"));
+            locationLeftSide.setBackgroundColor(Color.parseColor("#d7efa8"));
         }else{
             locationImage.setBackgroundColor(Color.parseColor("#ffffff"));
+            locationLeftSide.setBackgroundColor(Color.parseColor("#ffffff"));
         }
 
         //Handle isStartElement format
@@ -68,13 +71,18 @@ public class ListViewLocationAdapter extends ArrayAdapter<IPlaces>{
                     }
                     for (View view : mViewList){
                         ImageView locationImageTmp = (ImageView) view.findViewById(R.id.list_view_image);
+                        final LinearLayout locationLeftSideTmp = (LinearLayout) view.findViewById(R.id.list_view_left_side);
+
                         locationImageTmp.setBackgroundColor(Color.parseColor("#ffffff"));
+                        locationLeftSideTmp.setBackgroundColor(Color.parseColor("#ffffff"));
                     }
 
                     locationImage.setBackgroundColor(Color.parseColor("#b7d877"));
+                    locationLeftSide.setBackgroundColor(Color.parseColor("#d7efa8"));
                     place.setIsStartElement(true);
                 }else{
                     locationImage.setBackgroundColor(Color.parseColor("#ffffff"));
+                    locationLeftSide.setBackgroundColor(Color.parseColor("#ffffff"));
                     place.setIsStartElement(false);
                 }
             }

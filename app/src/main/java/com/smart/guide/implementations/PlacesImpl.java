@@ -1,4 +1,4 @@
-package implementations;
+package com.smart.guide.implementations;
 
 import android.location.Location;
 
@@ -6,7 +6,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.Marker;
 import com.google.maps.model.DistanceMatrix;
 
-import interfaces.IPlaces;
+import com.smart.guide.interfaces.IPlaces;
 
 /**
  * Created by Eric Schmidt on 22.04.2015.

@@ -25,4 +25,5 @@ dependencies {
     compile 'com.google.android.gms:play-services:7.0.0'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'com.google.maps:google-maps-services:0.1.6'
+    compile 'com.hudomju:swipe-to-dismiss-undo:1.0'
 }

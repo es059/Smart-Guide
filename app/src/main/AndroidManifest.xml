@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ericschmidt.smartguide" >
+    package="com.smart.guide" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -29,12 +29,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key"/>
 
-        <!--<meta-data
-            android:name="com.google.android.maps.v2.API_KEY"
-            android:value="@string/google_maps_key" />-->
-
         <activity
-            android:name=".SmartGuideActivity"
+            android:name="com.smart.guide.main.SmartGuideActivity"
             android:label="@string/title_activity_smart_guide" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

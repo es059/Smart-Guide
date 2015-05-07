@@ -3,7 +3,11 @@
     <string name="title_activity_smart_guide">Smart Guide</string>
 
     <string name="action_do">Smart Guide</string>
+    <string name="action_navigate">Open Route in Maps</string>
     <string name="location_txt">Your Place</string>
+    <string name="location_no_places_added">No Places Added</string>
+    <string name="location_delete">Place was deleted</string>
+    <string name="location_undo">Undo</string>
 
     <string name="progress_dialog_title">Calculating...</string>
     <string name="progress_dialog_message">Finding the best route</string>

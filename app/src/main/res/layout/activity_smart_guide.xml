@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:focusableInTouchMode="true"
     android:orientation="vertical"
     android:background="#FFFFFF" >
 
@@ -10,15 +11,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:singleLine="true"
+        android:paddingTop="10dp"
+        android:nextFocusUp="@id/location_txt"
+        android:nextFocusLeft="@id/location_txt"
         android:hint="@string/location_txt" />
 
     <ListView
         android:id="@+id/location_list"
         android:layout_width="match_parent"
         android:layout_height="230dp"
-        android:layout_marginTop="5dp"
         android:layout_marginBottom="20dp"
         android:layout_below="@+id/location_txt"/>
+
+    <TextView
+        android:id="@+id/location_hint"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_marginBottom="20dp"
+        android:layout_below="@+id/location_txt"
+        android:text="@string/location_no_places_added"
+        android:layout_centerInParent="true"
+        android:background="#49ffffff"
+        android:gravity="center_vertical|center_horizontal"
+        android:textIsSelectable="false"
+        android:textSize="20dp" />
 
     <fragment
         android:id="@+id/map"

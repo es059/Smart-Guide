@@ -1,7 +1,9 @@
-package com.example.ericschmidt.smartguide;
+package com.smart.guide.main;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -9,9 +11,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -26,15 +30,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.hudomju.swipe.SwipeToDismissTouchListener;
+import com.hudomju.swipe.adapter.ListViewAdapter;
+import com.hudomju.swipe.adapter.ViewAdapter;
+import com.smart.guide.R;
+import com.smart.guide.algorithm.SmartWay;
+import com.smart.guide.implementations.GoogleMapsApiBuilder;
+import com.smart.guide.implementations.ListViewLocationAdapter;
+import com.smart.guide.implementations.LocationAdapter;
+import com.smart.guide.interfaces.IPlaces;
+import com.smart.guide.interfaces.ISmartWay;
 
 import java.util.ArrayList;
-
-import implementations.GoogleMapsApiBuilder;
-import implementations.ListViewLocationAdapter;
-import implementations.LocationAdapter;
-import implementations.SmartWay;
-import interfaces.IPlaces;
-import interfaces.ISmartWay;
 
 public class SmartGuideActivity extends ActionBarActivity
         implements AdapterView.OnItemClickListener{
@@ -42,7 +49,7 @@ public class SmartGuideActivity extends ActionBarActivity
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ISmartWay mSmartWay; //reference to the implementation of the SmartWay-Algorithmen
     private GoogleApiClient mGoogleApiClient;
-    private ArrayList<Marker> mMarkerList = new ArrayList<>();;
+    private ArrayList<Marker> mMarkerList = new ArrayList<>();
     private LocationAdapter mLocationAdapter;
     private ListViewLocationAdapter mListViewLocationAdapter;
     private ArrayList<IPlaces> mPlacesList = new ArrayList<>();
@@ -52,6 +59,7 @@ public class SmartGuideActivity extends ActionBarActivity
 
     private AutoCompleteTextView searchTextView;
     private ListView locationListView;
+    private TextView locationHint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,16 +68,32 @@ public class SmartGuideActivity extends ActionBarActivity
 
         setUpMapIfNeeded();
 
+        locationHint = (TextView) findViewById(R.id.location_hint);
+
+        //Set up the Autocomplete TextView
+        initializeAutoCompleteView();
+
+        //Receive the GoogleApiClient Object
+        mGoogleApiClient = GoogleMapsApiBuilder.getInstance(this, mLocationAdapter);
+
+        //Set the reference to the list view and assign the adapter
+        initializeListView();
+
+        //Set the reference to the smart way algorithmen
+        mSmartWay = new SmartWay();
+
+    }
+
+    private void initializeAutoCompleteView(){
         //Set up the Autocomplete TextView
         searchTextView = (AutoCompleteTextView) findViewById(R.id.location_txt);
         mLocationAdapter = new LocationAdapter(this, android.R.layout.simple_list_item_1,
                 BOUNDS_GREATER_SYDNEY, null);
         searchTextView.setAdapter(mLocationAdapter);
         searchTextView.setOnItemClickListener(this);
+    }
 
-        //Receive the GoogleApiClient Object
-        mGoogleApiClient = GoogleMapsApiBuilder.getInstance(this, mLocationAdapter);
-
+    private void initializeListView(){
         //Set the reference to the list view and assign the adapter
         locationListView = (ListView) findViewById(R.id.location_list);
         mListViewLocationAdapter = new ListViewLocationAdapter(this, mPlacesList);
@@ -82,15 +106,51 @@ public class SmartGuideActivity extends ActionBarActivity
             }
         });
 
-        //Set the reference to the smart way algorithmen
-        mSmartWay = new SmartWay();
+        final SwipeToDismissTouchListener touchListener =
+                new SwipeToDismissTouchListener<>(
+                        new ListViewAdapter(locationListView),
+                        new SwipeToDismissTouchListener.DismissCallbacks() {
+                            @Override
+                            public boolean canDismiss(int position) {
+                                return true;
+                            }
 
+                            @Override
+                            public void onDismiss(ViewAdapter viewAdapter, int i) {
+                                removeMarker(mPlacesList.get(i));
+                                mPlacesList.remove(i);
+                                mListViewLocationAdapter.notifyDataSetChanged();
+                            }
+                        });
+
+        locationListView.setOnTouchListener(touchListener);
+        locationListView.setOnScrollListener((AbsListView.OnScrollListener) touchListener.makeScrollListener());
+        locationListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView parent, View view, int position, long id) {
+                if (touchListener.existPendingDismisses()) {
+                    touchListener.undoPendingDismiss();
+                } else {
+                    if (mPlacesList.isEmpty()){
+                        locationHint.setVisibility(View.VISIBLE);
+                    }else{
+                        locationHint.setVisibility(View.GONE);
+                    }
+                }
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
+        if (mPlacesList.isEmpty()){
+            locationHint.setVisibility(View.VISIBLE);
+        }else{
+            locationHint.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -115,6 +175,8 @@ public class SmartGuideActivity extends ActionBarActivity
             }else{
                 return false;
             }
+        }else if(id == R.id.action_navigate){
+            openRouteInMaps();
         }
 
         return super.onOptionsItemSelected(item);
@@ -143,6 +205,24 @@ public class SmartGuideActivity extends ActionBarActivity
         }
     }
 
+    private void openRouteInMaps(){
+        if (!mPlacesList.isEmpty()){
+            String uriString = "";
+
+            for(IPlaces place : mPlacesList){
+                if (uriString.isEmpty()) {
+                    uriString += "http://maps.google.com/maps?saddr=" + place.getPlace().getAddress().toString().replace(" ", "+") + "&daddr=";
+                }else{
+                    uriString += place.getPlace().getAddress().toString().replace(" ", "+")+ "+to:";
+                }
+            }
+
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(uriString));
+            startActivity(intent);
+        }
+    }
+
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
@@ -157,13 +237,17 @@ public class SmartGuideActivity extends ActionBarActivity
         centerMap();
     }
 
+    private void removeMarker(IPlaces place){
+        place.getMarker().remove();
+    }
+
     private void centerMap(Marker marker){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(marker.getPosition());
-        doCenter(builder,true);
+        doCenter(builder);
     }
 
-    private void doCenter(LatLngBounds.Builder builder, final boolean singlePoint){
+    private void doCenter(LatLngBounds.Builder builder){
         LatLngBounds bounds = builder.build();
         int padding = 50;// offset from edges of the map in pixels
 
@@ -181,11 +265,7 @@ public class SmartGuideActivity extends ActionBarActivity
         for (Marker marker : mMarkerList) {
             builder.include(marker.getPosition());
         }
-        if (mMarkerList.size() > 1) {
-            doCenter(builder, false);
-        }else{
-            doCenter(builder, true);
-        }
+        doCenter(builder);
     }
 
     @Override
@@ -193,6 +273,12 @@ public class SmartGuideActivity extends ActionBarActivity
         final IPlaces place = mLocationAdapter.getItem(position);
         mListViewLocationAdapter.add(place);
         mListViewLocationAdapter.notifyDataSetChanged();
+
+        if (mPlacesList.isEmpty()){
+            locationHint.setVisibility(View.VISIBLE);
+        }else{
+            locationHint.setVisibility(View.GONE);
+        }
 
         PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
                 .getPlaceById(mGoogleApiClient, place.getPlaceID().toString());
@@ -202,8 +288,6 @@ public class SmartGuideActivity extends ActionBarActivity
                   place.setPlace(places.get(0));
                   setMarker(place);
 
-                  //mListViewLocationAdapter.remove(place);
-                  //mListViewLocationAdapter.add(place);
                   mListViewLocationAdapter.notifyDataSetChanged();
               }
          });

@@ -1,8 +1,6 @@
-package interfaces;
+package com.smart.guide.interfaces;
 
 import java.util.ArrayList;
-
-import implementations.Tour;
 
 /**
  * Created by Eric Schmidt on 22.04.2015.

@@ -5,6 +5,11 @@
 
     <item android:id="@+id/action_do"
         android:title="@string/action_do"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        app:showAsAction="always" />
+
+    <item android:id="@+id/action_navigate"
+        android:title="@string/action_navigate"
+        android:icon="@android:drawable/ic_menu_mapmode"
         app:showAsAction="always" />
 </menu>

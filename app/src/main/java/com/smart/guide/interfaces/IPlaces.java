@@ -1,4 +1,4 @@
-package interfaces;
+package com.smart.guide.interfaces;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.Marker;
